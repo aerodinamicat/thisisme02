@@ -3,7 +3,7 @@ package models
 import "database/sql"
 
 type User struct {
-	ID       string `json:"id"`
+	Id       string `json:"id"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 

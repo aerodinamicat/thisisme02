@@ -24,10 +24,22 @@ func (pgr *PostgresImplementation) CloseDatabaseConnection() error {
 	return pgr.db.Close()
 }
 
-func (pgr *PostgresImplementation) InsertUser(ctx context.Context, user *models.User) error {
+func (pgr *PostgresImplementation) InsertUser(ctx context.Context, u *models.User) error {
+	querySentence := "INSERT INTO users (id, email, password) VALUES ($1, $2, $3)"
+	_, err := pgr.db.ExecContext(ctx, querySentence, u.Id, u.Email, u.Password)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
-func (pgr *PostgresImplementation) InsertPerson(ctx context.Context, person *models.Person) error {
+func (pgr *PostgresImplementation) InsertPerson(ctx context.Context, p *models.Person) error {
+	querySentence := "INSERT INTO persons (first_name, second_name, first_surname, second_surname, gender, birth_date, user_id) VALUES ($1, $2, $3, $4, $5, $6)"
+	_, err := pgr.db.ExecContext(ctx, querySentence, p.FirstName, p.SecondName, p.FirstSurname, p.SecondSurname, p.Gender, p.BirthDate.Time, p.UserId)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
