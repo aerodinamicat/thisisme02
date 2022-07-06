@@ -1,10 +1,11 @@
 package models
 
 type PageInfo struct {
-	PageToken int `json:"pageToken"`
+	Current int `json:"current"`
+	Next    int `json:"next"`
 
-	OrderBy  string `json:"orderBy"`
-	PageSize int    `json:"pageSize"`
+	OrderBy string `json:"orderBy"`
+	Size    int    `json:"size"`
 
 	TotalPages int `json:"totalPages"`
 	TotalItems int `json:"totalItems"`

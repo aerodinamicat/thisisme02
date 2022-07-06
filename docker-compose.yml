@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  appdb:
+    build:
+      context: ./databases
+      dockerfile: .
+    ports:
+      - "54321:5432"
+    networks:
+      - appnet
+    environment:
+      - POSTGRES_DB=thisisme
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=mysecretpassword
+
+networks:
+  appnet:
+    name: appnet

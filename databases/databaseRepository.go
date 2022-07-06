@@ -18,8 +18,8 @@ type DatabaseRepository interface {
 	GetUserByEmail(ctx context.Context, email string) (*models.User, error)
 	GetPersonByUserId(ctx context.Context, userId string) (*models.Person, error)
 
-	ListUsers(ctx context.Context, pageInfo *models.PageInfo) ([]*models.User, error)
-	ListPersons(ctx context.Context, pageInfo *models.PageInfo) ([]*models.Person, error)
+	ListUsers(ctx context.Context, pageInfo *models.PageInfo) ([]*models.User, *models.PageInfo, error)
+	ListPersons(ctx context.Context, pageInfo *models.PageInfo) ([]*models.Person, *models.PageInfo, error)
 
 	//* Standards methods - Update
 	UpdateUser(ctx context.Context, user *models.User) error
@@ -56,10 +56,10 @@ func GetUserByEmail(ctx context.Context, email string) (*models.User, error) {
 func GetPersonByUserId(ctx context.Context, userId string) (*models.Person, error) {
 	return dbrImplementation.GetPersonByUserId(ctx, userId)
 }
-func ListUsers(ctx context.Context, pageInfo *models.PageInfo) ([]*models.User, error) {
+func ListUsers(ctx context.Context, pageInfo *models.PageInfo) ([]*models.User, *models.PageInfo, error) {
 	return dbrImplementation.ListUsers(ctx, pageInfo)
 }
-func ListPersons(ctx context.Context, pageInfo *models.PageInfo) ([]*models.Person, error) {
+func ListPersons(ctx context.Context, pageInfo *models.PageInfo) ([]*models.Person, *models.PageInfo, error) {
 	return dbrImplementation.ListPersons(ctx, pageInfo)
 }
 
