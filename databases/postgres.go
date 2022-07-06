@@ -3,22 +3,45 @@ package databases
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/aerodinamicat/thisisme02/models"
 )
 
 type PostgresImplementation struct {
-	db *sql.DB
+	db               *sql.DB
+	Name             string
+	DatabaseHost     string
+	DatabasePassword string
+	DatabasePort     string
+	DatabaseSchema   string
+	DatabaseUser     string
 }
 
-func NewPostgresImplementation(databaseURL string) (*PostgresImplementation, error) {
-	db, err := sql.Open("postgres", databaseURL)
+func NewPostgresImplementation(user string, password string, host string, port string, schema string) (*PostgresImplementation, error) {
+	var pgr PostgresImplementation
+
+	name := "postgres"
+	url := pgr.BuildURL(name, user, password, host, port, schema)
+
+	db, err := sql.Open(name, url)
 	if err != nil {
 		return nil, err
 	}
 
-	return &PostgresImplementation{db}, nil
+	pgr.db = db
+	pgr.Name = name
+	pgr.DatabaseHost = host
+	pgr.DatabasePassword = password
+	pgr.DatabasePort = port
+	pgr.DatabaseSchema = schema
+	pgr.DatabaseUser = user
+
+	return &pgr, nil
+}
+func (pgr *PostgresImplementation) BuildURL(name string, user string, password string, host string, port string, schema string) string {
+	return fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=disable", name, user, password, host, port, schema)
 }
 
 func (pgr *PostgresImplementation) CloseDatabaseConnection() error {
