@@ -13,7 +13,10 @@ Server with standard REST API methods (CRUD):
 - "ksuid": Libraries from 'Segmentio' to work with random generated strings
     - How to get:
         > `$ go get github.com/segmentio/ksuid`
-- "crypto": Libraries from "Golang" (itshelf) to work with hashing (generating
+- "jwt": Libraries from "Golang" (itshelf) to work with hashing (generating
 JWT authorization tokens):
     - How to get:
-        > `$ go get golang.org/x/crypto`
+        > `$ go get github.com/golang-jwt/jwt`
+- "mux": Libraries from "Gorilla" to work with http handlers and endpoints:
+    - How to get:
+        > `$ go get github.com/gorilla/mux`
