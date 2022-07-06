@@ -1,9 +1,9 @@
-package database
+package databases
 
 import (
 	"context"
 
-	models "github.com/aerodinamicat/thisisme02/models"
+	"github.com/aerodinamicat/thisisme02/models"
 )
 
 type DatabaseRepository interface {
