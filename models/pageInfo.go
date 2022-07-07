@@ -1,8 +1,7 @@
 package models
 
 type PageInfo struct {
-	Current int `json:"current"`
-	Next    int `json:"next"`
+	Token int `json:"token"`
 
 	OrderBy string `json:"orderBy"`
 	Size    int    `json:"size"`

@@ -10,8 +10,10 @@ import (
 )
 
 type PostgresImplementation struct {
-	db               *sql.DB
-	Name             string
+	db *sql.DB
+
+	Name string
+
 	DatabaseHost     string
 	DatabasePassword string
 	DatabasePort     string
@@ -260,7 +262,7 @@ func (pgr *PostgresImplementation) ListUsers(ctx context.Context, pageInfo *mode
 		ORDER BY $1 LIMIT $2 OFFSET $3
 	`
 	if rows, err = pgr.db.QueryContext(ctx, querySentence,
-		pageInfo.OrderBy, pageInfo.Size, pageInfo.Current,
+		pageInfo.OrderBy, pageInfo.Size, pageInfo.Token*pageInfo.Size,
 	); err != nil {
 		pageInfo.TotalPages = 0
 		pageInfo.TotalItems = 0
@@ -295,11 +297,6 @@ func (pgr *PostgresImplementation) ListUsers(ctx context.Context, pageInfo *mode
 		pageInfo.TotalItems = 0
 
 		return nil, pageInfo, err
-	}
-
-	pageInfo.Next = pageInfo.Current + pageInfo.Size
-	if pageInfo.Next >= pageInfo.TotalItems {
-		pageInfo.Next = -1
 	}
 
 	return users, pageInfo, nil
@@ -359,7 +356,7 @@ func (pgr *PostgresImplementation) ListPersons(ctx context.Context, pageInfo *mo
 		ORDER BY $1 LIMIT $2 OFFSET $3
 	`
 	if rows, err = pgr.db.QueryContext(ctx, querySentence,
-		pageInfo.OrderBy, pageInfo.Size, pageInfo.Current,
+		pageInfo.OrderBy, pageInfo.Size, pageInfo.Token,
 	); err != nil {
 		pageInfo.TotalPages = 0
 		pageInfo.TotalItems = 0
@@ -399,11 +396,6 @@ func (pgr *PostgresImplementation) ListPersons(ctx context.Context, pageInfo *mo
 		pageInfo.TotalItems = 0
 
 		return nil, pageInfo, err
-	}
-
-	pageInfo.Next = pageInfo.Current + pageInfo.Size
-	if pageInfo.Next >= pageInfo.TotalItems {
-		pageInfo.Next = -1
 	}
 
 	return persons, pageInfo, nil
