@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aerodinamicat/thisisme02/models"
+	_ "github.com/lib/pq"
 )
 
 type PostgresImplementation struct {
@@ -126,10 +127,10 @@ func (pgr *PostgresImplementation) GetUserByEmail(ctx context.Context, email str
 		return nil, err
 	}
 	defer rows.Close()
-
+	user = &models.User{}
 	for rows.Next() {
 		if err = rows.Scan(
-			&user.Id, &user.Email, &user.Password, createdAt, updatedAt,
+			&user.Id, &user.Email, &user.Password, &createdAt, &updatedAt,
 		); err != nil {
 			return nil, err
 		}
@@ -137,14 +138,12 @@ func (pgr *PostgresImplementation) GetUserByEmail(ctx context.Context, email str
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
-
 	if createdAt.Valid {
 		user.CreatedAt = createdAt.Time
 	}
 	if updatedAt.Valid {
 		user.UpdatedAt = updatedAt.Time
 	}
-
 	return user, nil
 }
 func (pgr *PostgresImplementation) ListUsers(ctx context.Context, pageInfo *models.PageInfo) ([]*models.User, *models.PageInfo, error) {

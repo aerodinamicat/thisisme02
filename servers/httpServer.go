@@ -5,44 +5,57 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/aerodinamicat/thisisme02/databases"
 	"github.com/gorilla/mux"
 )
 
-type HTTPServer struct {
-	Config *Config
-	Router *mux.Router
-}
-
 type Config struct {
-	Port            string
-	JWTSecretPhrase string
+	Port   string
+	Secret string
+}
+type DBConfig struct {
+	Port     string
+	Password string
+	User     string
+	Host     string
+	Schema   string
 }
 
-func NewHTTPServer(ctx context.Context, port string, jwtSecretPhrase string) *HTTPServer {
-	config := &Config{
-		Port:            port,
-		JWTSecretPhrase: jwtSecretPhrase,
+type HttpServer interface {
+	Config() *Config
+}
+
+type Broker struct {
+	config   *Config
+	dbConfig *DBConfig
+	router   *mux.Router
+}
+
+func (b *Broker) Config() *Config {
+	return b.config
+}
+
+func NewHttpServer(ctx context.Context, cfg *Config, dbCfg *DBConfig) *Broker {
+	broker := &Broker{
+		config:   cfg,
+		dbConfig: dbCfg,
+		router:   mux.NewRouter(),
 	}
 
-	return &HTTPServer{
-		Config: config,
-		Router: mux.NewRouter(),
+	return broker
+}
+
+func (b *Broker) Start(binder func(server HttpServer, router *mux.Router)) {
+	binder(b, b.router)
+
+	dbr, err := databases.NewPostgresImplementation(b.dbConfig.User, b.dbConfig.Password, b.dbConfig.Host, b.dbConfig.Port, b.dbConfig.Schema)
+	if err != nil {
+		log.Fatalf("Database connection failed: '%v'", err)
 	}
-}
+	databases.SetDatabaseRepository(dbr)
 
-func (srv *HTTPServer) stablishHandlers() {
-	//srv.Router.Use(middleware.CheckAuthNeeded(srv))
-
-	//srv.Router.HandlerFunc("/signup", handlers.SignUpHandler(srv).Methods(http.MethodPost))
-}
-
-func (srv *HTTPServer) Start() {
-	var err error
-
-	srv.stablishHandlers()
-
-	log.Printf("Starting server on port: %s\n", srv.Config.Port)
-	if err = http.ListenAndServe(srv.Config.Port, srv.Router); err != nil {
+	//log.Printf("Starting server on port: %s\n", b.config.Port)
+	if err := http.ListenAndServe(":"+b.config.Port, b.router); err != nil {
 		log.Fatalf("Error from 'Listen&Serve: '%v'", err)
 	}
 }
