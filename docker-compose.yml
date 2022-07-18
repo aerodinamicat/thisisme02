@@ -1,19 +1,40 @@
 version: "3.8"
 
 services:
-  appdb:
+  db:
+    container_name: ua_db
     build:
       context: ./databases
       dockerfile: .
     ports:
       - "54321:5432"
     networks:
-      - appnet
+      - net
     environment:
-      - POSTGRES_DB=thisisme
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=mysecretpassword
+      - POSTGRES_DB=${DB_SCHEMA}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+  app:
+    container_name: ua_app
+    build:
+      context: .
+      dockerfile: .
+    ports:
+      - "5070:5070"
+    networks:
+      - net
+    depends_on:
+      - db
+    environment:
+      - APP_PORT=${APP_PORT}
+      - APP_JWTSECRET=${APP_JWTSECRET}
+      - DB_SCHEMA=${DB_SCHEMA}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_HOST=${DB_HOST}
+      - DB_PORT=${DB_PORT}
 
 networks:
-  appnet:
-    name: appnet
+  net:
+    name: ua_net
+    driver: bridge

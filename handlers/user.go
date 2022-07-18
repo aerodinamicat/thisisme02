@@ -30,12 +30,28 @@ type SignUpRequest struct {
 type SignUpResponse struct {
 	Id string `json:"id"`
 }
+
 type LogInRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 type LogInResponse struct {
-	AuthorizationToken string `json:"authorization"`
+	Authorization string `json:"authorization"`
+}
+
+type ChangeEmailRequest struct {
+	NewEmail string `json:"newEmail"`
+}
+type ChangeEmailResponse struct {
+	Result bool `json:"result"`
+}
+
+type ChangePasswordRequest struct {
+	CurrentPassword string `json:"currentPassword"`
+	NewPassword     string `json:"newPassword"`
+}
+type ChangePasswordResponse struct {
+	Result bool `json:"result"`
 }
 
 func newUserClaim(userId string) UserClaim {
@@ -47,12 +63,9 @@ func newUserClaim(userId string) UserClaim {
 	}
 }
 
-func SignUpHandler(server servers.HttpServer) http.HandlerFunc {
+func SignUpHandler(server *servers.HttpServer) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		var decodedRequest SignUpRequest
-		var notEncodedResponse SignUpResponse
-
-		decodedRequest = SignUpRequest{}
+		var decodedRequest = new(SignUpRequest)
 		if err := json.NewDecoder(request.Body).Decode(&decodedRequest); err != nil {
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
@@ -81,20 +94,16 @@ func SignUpHandler(server servers.HttpServer) http.HandlerFunc {
 			return
 		}
 
-		notEncodedResponse = SignUpResponse{
+		notEncodedResponse := SignUpResponse{
 			Id: user.Id,
 		}
-
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(notEncodedResponse)
 	}
 }
-func LogInHandler(server servers.HttpServer) http.HandlerFunc {
+func LogInHandler(server *servers.HttpServer) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		var decodedRequest LogInRequest
-		var notEncodedResponse LogInResponse
-		var user *models.User
-
+		var decodedRequest = new(LogInRequest)
 		if err := json.NewDecoder(request.Body).Decode(&decodedRequest); err != nil {
 			http.Error(writer, err.Error(), http.StatusBadRequest)
 			return
@@ -116,16 +125,15 @@ func LogInHandler(server servers.HttpServer) http.HandlerFunc {
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, newUserClaim(user.Id))
-		authorizationToken, err := token.SignedString([]byte(server.Config().Secret))
+		authorizationToken, err := token.SignedString([]byte(server.Config.Secret))
 		if err != nil {
 			http.Error(writer, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		notEncodedResponse = LogInResponse{
-			AuthorizationToken: authorizationToken,
+		notEncodedResponse := &LogInResponse{
+			Authorization: authorizationToken,
 		}
-
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(notEncodedResponse)
 	}
