@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/aerodinamicat/thisisme02/databases"
@@ -133,6 +134,103 @@ func LogInHandler(server *servers.HttpServer) http.HandlerFunc {
 
 		notEncodedResponse := &LogInResponse{
 			Authorization: authorizationToken,
+		}
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(notEncodedResponse)
+	}
+}
+func ChangeEmailHandler(server *servers.HttpServer) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		authorizationToken := strings.TrimSpace(request.Header.Get("Authorization"))
+		token, err := jwt.ParseWithClaims(authorizationToken, &UserClaim{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte(server.Config.Secret), nil
+		})
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		claims, ok := token.Claims.(*UserClaim)
+		if !ok || !token.Valid {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		user, err := databases.GetUserById(request.Context(), claims.UserId)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var decodedRequest = new(ChangeEmailRequest)
+		if err := json.NewDecoder(request.Body).Decode(&decodedRequest); err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		user.Email = decodedRequest.NewEmail
+
+		if err := databases.UpdateUser(request.Context(), user); err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		notEncodedResponse := ChangeEmailResponse{
+			Result: true,
+		}
+		writer.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(writer).Encode(notEncodedResponse)
+	}
+}
+func ChangePasswordHandler(server *servers.HttpServer) http.HandlerFunc {
+	return func(writer http.ResponseWriter, request *http.Request) {
+		authorizationToken := strings.TrimSpace(request.Header.Get("Authorization"))
+		token, err := jwt.ParseWithClaims(authorizationToken, &UserClaim{}, func(token *jwt.Token) (interface{}, error) {
+			return []byte(server.Config.Secret), nil
+		})
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		claims, ok := token.Claims.(*UserClaim)
+		if !ok || !token.Valid {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		user, err := databases.GetUserById(request.Context(), claims.UserId)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var decodedRequest = new(ChangePasswordRequest)
+		if err := json.NewDecoder(request.Body).Decode(&decodedRequest); err != nil {
+			http.Error(writer, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(decodedRequest.CurrentPassword)); err != nil {
+			http.Error(writer, "Invalid credentials", http.StatusUnauthorized)
+			return
+		}
+
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(decodedRequest.NewPassword), HASH_COST)
+		if err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		user.Password = string(hashedPassword)
+
+		if err := databases.UpdateUser(request.Context(), user); err != nil {
+			http.Error(writer, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		notEncodedResponse := ChangePasswordResponse{
+			Result: true,
 		}
 		writer.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(writer).Encode(notEncodedResponse)

@@ -90,8 +90,8 @@ func (pgr *PostgresImplementation) GetUserById(ctx context.Context, id string) (
 			&user.Id,
 			&user.Email,
 			&user.Password,
-			createdAt,
-			updatedAt,
+			&createdAt,
+			&updatedAt,
 		); err != nil {
 			return nil, err
 		}
