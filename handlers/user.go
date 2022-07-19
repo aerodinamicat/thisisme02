@@ -15,8 +15,9 @@ import (
 )
 
 const (
-	HASH_COST   = 8
-	EXPIRE_TIME = 1 * time.Hour * 24
+	HASH_COST            = 8
+	EXPIRE_TIME          = 1 * time.Hour * 24
+	HEADER_AUTHORIZATION = "Authorization"
 )
 
 type UserClaim struct {
@@ -136,12 +137,13 @@ func LogInHandler(server *servers.HttpServer) http.HandlerFunc {
 			Authorization: authorizationToken,
 		}
 		writer.Header().Set("Content-Type", "application/json")
+		writer.Header().Set(HEADER_AUTHORIZATION, authorizationToken)
 		json.NewEncoder(writer).Encode(notEncodedResponse)
 	}
 }
 func ChangeEmailHandler(server *servers.HttpServer) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		authorizationToken := strings.TrimSpace(request.Header.Get("Authorization"))
+		authorizationToken := strings.TrimSpace(request.Header.Get(HEADER_AUTHORIZATION))
 		token, err := jwt.ParseWithClaims(authorizationToken, &UserClaim{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(server.Config.Secret), nil
 		})
@@ -184,7 +186,7 @@ func ChangeEmailHandler(server *servers.HttpServer) http.HandlerFunc {
 }
 func ChangePasswordHandler(server *servers.HttpServer) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		authorizationToken := strings.TrimSpace(request.Header.Get("Authorization"))
+		authorizationToken := strings.TrimSpace(request.Header.Get(HEADER_AUTHORIZATION))
 		token, err := jwt.ParseWithClaims(authorizationToken, &UserClaim{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(server.Config.Secret), nil
 		})

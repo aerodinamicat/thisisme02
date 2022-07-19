@@ -20,7 +20,7 @@ func setEndPointsHandlers(server *servers.HttpServer, router *mux.Router) {
 	router.HandleFunc("/user/changeEmail", handlers.ChangeEmailHandler(server)).Methods(http.MethodPut)
 	router.HandleFunc("/user/changePassword", handlers.ChangePasswordHandler(server)).Methods(http.MethodPut)
 
-	// Hay que añadir los endpoints para cambiar el email y cambiar la contraseña.
+	// Hay que añadir los endpoints para 'recordar contraseña'.
 }
 
 func main() {
